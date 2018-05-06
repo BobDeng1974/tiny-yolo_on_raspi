@@ -1,0 +1,3 @@
+/home/pi/dl_ans/c_neon/CMakeFiles/edit_cache.dir
+/home/pi/dl_ans/c_neon/CMakeFiles/rebuild_cache.dir
+/home/pi/dl_ans/c_neon/CMakeFiles/c_neon.dir

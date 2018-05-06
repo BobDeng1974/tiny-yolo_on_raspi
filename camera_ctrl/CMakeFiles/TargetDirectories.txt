@@ -1,0 +1,3 @@
+/home/pi/dl_ans/camera_ctrl/CMakeFiles/edit_cache.dir
+/home/pi/dl_ans/camera_ctrl/CMakeFiles/rebuild_cache.dir
+/home/pi/dl_ans/camera_ctrl/CMakeFiles/camera_ctrl.dir

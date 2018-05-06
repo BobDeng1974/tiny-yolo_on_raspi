@@ -1,0 +1,89 @@
+hello cqt
+load from ../img/person.jpg.npy
+size = 519168, size_from_shape = 519168
+load from weight/conv2d_1_kernel_z.npy
+size = 432, size_from_shape = 432
+load from weight/batch_normalization_1_beta_z.npy
+size = 16, size_from_shape = 16
+load from weight/batch_normalization_1_gamma_z.npy
+size = 16, size_from_shape = 16
+load from weight/batch_normalization_1_moving_mean_z.npy
+size = 16, size_from_shape = 16
+load from weight/batch_normalization_1_moving_variance_z.npy
+size = 16, size_from_shape = 16
+load from weight/conv2d_2_kernel_z.npy
+size = 4608, size_from_shape = 4608
+load from weight/batch_normalization_2_beta_z.npy
+size = 32, size_from_shape = 32
+load from weight/batch_normalization_2_gamma_z.npy
+size = 32, size_from_shape = 32
+load from weight/batch_normalization_2_moving_mean_z.npy
+size = 32, size_from_shape = 32
+load from weight/batch_normalization_2_moving_variance_z.npy
+size = 32, size_from_shape = 32
+load from weight/conv2d_3_kernel_z.npy
+size = 18432, size_from_shape = 18432
+load from weight/batch_normalization_3_beta_z.npy
+size = 64, size_from_shape = 64
+load from weight/batch_normalization_3_gamma_z.npy
+size = 64, size_from_shape = 64
+load from weight/batch_normalization_3_moving_mean_z.npy
+size = 64, size_from_shape = 64
+load from weight/batch_normalization_3_moving_variance_z.npy
+size = 64, size_from_shape = 64
+load from weight/conv2d_4_kernel_z.npy
+size = 73728, size_from_shape = 73728
+load from weight/batch_normalization_4_beta_z.npy
+size = 128, size_from_shape = 128
+load from weight/batch_normalization_4_gamma_z.npy
+size = 128, size_from_shape = 128
+load from weight/batch_normalization_4_moving_mean_z.npy
+size = 128, size_from_shape = 128
+load from weight/batch_normalization_4_moving_variance_z.npy
+size = 128, size_from_shape = 128
+load from weight/conv2d_5_kernel_z.npy
+size = 294912, size_from_shape = 294912
+load from weight/batch_normalization_5_beta_z.npy
+size = 256, size_from_shape = 256
+load from weight/batch_normalization_5_gamma_z.npy
+size = 256, size_from_shape = 256
+load from weight/batch_normalization_5_moving_mean_z.npy
+size = 256, size_from_shape = 256
+load from weight/batch_normalization_5_moving_variance_z.npy
+size = 256, size_from_shape = 256
+load from weight/conv2d_6_kernel_z.npy
+size = 1179648, size_from_shape = 1179648
+load from weight/batch_normalization_6_beta_z.npy
+size = 512, size_from_shape = 512
+load from weight/batch_normalization_6_gamma_z.npy
+size = 512, size_from_shape = 512
+load from weight/batch_normalization_6_moving_mean_z.npy
+size = 512, size_from_shape = 512
+load from weight/batch_normalization_6_moving_variance_z.npy
+size = 512, size_from_shape = 512
+load from weight/conv2d_7_kernel_z.npy
+size = 4718592, size_from_shape = 4718592
+load from weight/batch_normalization_7_beta_z.npy
+size = 1024, size_from_shape = 1024
+load from weight/batch_normalization_7_gamma_z.npy
+size = 1024, size_from_shape = 1024
+load from weight/batch_normalization_7_moving_mean_z.npy
+size = 1024, size_from_shape = 1024
+load from weight/batch_normalization_7_moving_variance_z.npy
+size = 1024, size_from_shape = 1024
+load from weight/conv2d_8_kernel_z.npy
+size = 9437184, size_from_shape = 9437184
+load from weight/batch_normalization_8_beta_z.npy
+size = 1024, size_from_shape = 1024
+load from weight/batch_normalization_8_gamma_z.npy
+size = 1024, size_from_shape = 1024
+load from weight/batch_normalization_8_moving_mean_z.npy
+size = 1024, size_from_shape = 1024
+load from weight/batch_normalization_8_moving_variance_z.npy
+size = 1024, size_from_shape = 1024
+load from weight/conv2d_9_kernel_z.npy
+size = 128000, size_from_shape = 128000
+load from weight/conv2d_9_bias_z.npy
+size = 125, size_from_shape = 125
+start run
+yolo eval 0
