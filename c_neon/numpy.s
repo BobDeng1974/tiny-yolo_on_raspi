@@ -969,5 +969,5 @@ default_numpy_header:
 	.space	3
 .LC50:
 	.ascii	"len!=0\000"
-	.ident	"GCC: (Raspbian 4.9.2-10) 4.9.2"
+	.ident	"GCC: (Raspbian 4.9.2-10+deb8u1) 4.9.2"
 	.section	.note.GNU-stack,"",%progbits

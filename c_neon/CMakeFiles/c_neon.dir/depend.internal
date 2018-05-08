@@ -83,6 +83,7 @@ CMakeFiles/c_neon.dir/cqt_tyolo.c.o
  /home/pi/dl_ans/c_neon/inc/cqt_type.h
  /home/pi/dl_ans/c_neon/inc/numpy.h
  /home/pi/dl_ans/c_neon/ya2k_yolo.h
+ /home/pi/git/robidouille/raspicam_cv/RaspiCamCV.h
  /usr/include/opencv/cv.h
  /usr/include/opencv/highgui.h
  inc/cqt.h

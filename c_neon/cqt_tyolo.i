@@ -7645,6 +7645,49 @@ static int CV_FOURCC(char c1, char c2, char c3, char c4)
 # 1 "/usr/include/opencv2/highgui/highgui.hpp" 1 3 4
 # 49 "/usr/include/opencv/highgui.h" 2
 # 10 "/home/pi/dl_ans/c_neon/cqt_tyolo.c" 2
+# 1 "/home/pi/git/robidouille/raspicam_cv/RaspiCamCV.h" 1
+
+
+
+
+
+
+
+typedef struct _RASPIVID_STATE RASPIVID_STATE;
+
+typedef struct
+{
+ int width;
+ int height;
+ int bitrate;
+ int framerate;
+ int monochrome;
+} RASPIVID_CONFIG;
+
+typedef struct {
+ RASPIVID_STATE * pState;
+} RaspiCamCvCapture;
+
+typedef struct _IplImage IplImage;
+
+
+enum
+{
+    RPI_CAP_PROP_FRAME_WIDTH =3,
+    RPI_CAP_PROP_FRAME_HEIGHT =4,
+    RPI_CAP_PROP_FPS =5,
+    RPI_CAP_PROP_MONOCHROME =19,
+    RPI_CAP_PROP_BITRATE =37
+};
+
+RaspiCamCvCapture * raspiCamCvCreateCameraCapture2(int index, RASPIVID_CONFIG* config);
+RaspiCamCvCapture * raspiCamCvCreateCameraCapture(int index);
+void raspiCamCvReleaseCapture(RaspiCamCvCapture ** capture);
+double raspiCamCvGetCaptureProperty(RaspiCamCvCapture * capture, int property_id);
+int raspiCamCvSetCaptureProperty(RaspiCamCvCapture * capture, int property_id, double value);
+IplImage * raspiCamCvQueryFrame(RaspiCamCvCapture * capture);
+# 11 "/home/pi/dl_ans/c_neon/cqt_tyolo.c" 2
+
 
 # 1 "/home/pi/dl_ans/c_neon/inc/cqt.h" 1
 
@@ -7653,7 +7696,7 @@ static int CV_FOURCC(char c1, char c2, char c3, char c4)
 typedef short FIXP16;
 typedef signed char FIXP8;
 typedef short FP16;
-# 12 "/home/pi/dl_ans/c_neon/cqt_tyolo.c" 2
+# 14 "/home/pi/dl_ans/c_neon/cqt_tyolo.c" 2
 # 1 "/home/pi/dl_ans/c_neon/inc/cqt_net.h" 1
        
 
@@ -7906,7 +7949,7 @@ typedef struct cqt_net_tag {
     int layernum;
     CQT_LAYER layer[32];
 } CQT_NET;
-# 13 "/home/pi/dl_ans/c_neon/cqt_tyolo.c" 2
+# 15 "/home/pi/dl_ans/c_neon/cqt_tyolo.c" 2
 # 1 "/home/pi/dl_ans/c_neon/cqt_gen/cqt_gen.h" 1
 
 
@@ -8099,7 +8142,7 @@ extern float conv2d_8_output[1024][13+(2)*3][(4)+13+(3)];
 extern float batch_normalization_8_output[1024][13+(2)*3][(4)+13+(3)];
 extern float leaky_re_lu_8_output[1024][13+(2)*3][(4)+13+(3)];
 extern float conv2d_9_output[125][13+(2)*3][(4)+13+(3)];
-# 14 "/home/pi/dl_ans/c_neon/cqt_tyolo.c" 2
+# 16 "/home/pi/dl_ans/c_neon/cqt_tyolo.c" 2
 # 1 "/home/pi/dl_ans/c_neon/cqt_gen/cqt_debug.h" 1
 
 
@@ -8146,7 +8189,7 @@ void cqt_layer28_dump(void);
 void cqt_layer29_dump(void);
 void cqt_layer30_dump(void);
 void cqt_layer31_dump(void);
-# 15 "/home/pi/dl_ans/c_neon/cqt_tyolo.c" 2
+# 17 "/home/pi/dl_ans/c_neon/cqt_tyolo.c" 2
 # 1 "/home/pi/dl_ans/c_neon/ya2k_yolo.h" 1
 # 17 "/home/pi/dl_ans/c_neon/ya2k_yolo.h"
 typedef struct yolo_param_t {
@@ -8175,7 +8218,7 @@ extern YOLO_RESULT yolo_result[(128)];
 extern const char voc_class[(20)][(128)];
 # 62 "/home/pi/dl_ans/c_neon/ya2k_yolo.h"
 int yolo_eval(void *predp, YOLO_PARAM *pp);
-# 16 "/home/pi/dl_ans/c_neon/cqt_tyolo.c" 2
+# 18 "/home/pi/dl_ans/c_neon/cqt_tyolo.c" 2
 
 NUMPY_HEADER np;
 
@@ -8184,6 +8227,7 @@ float input_1_input [3][416][416];
 
 int main(void)
 {
+
 
   CvScalar r_color, w_color;
   CvPoint pt1, pt2, pt3, pt4;
@@ -8196,57 +8240,89 @@ int main(void)
     int y;
   } str_pnt, end_pnt;
 
-    CQT_NET *tyolo_p;
-    int ret;
-    YOLO_PARAM yolo_parameter;
-
-
-
-
-  r_color = cvScalar( (0), (0), (255), 0 );
-  w_color = cvScalar( (255), (255), (255), 0 );
-
-
-
-
-  cvNamedWindow ("Tiny-YOLO Result", CV_WINDOW_AUTOSIZE);
-  cvMoveWindow ("Tiny-YOLO Result", 600, 50);
-
-
-
-
-  src_img = cvLoadImage("../img/person.jpg", CV_LOAD_IMAGE_COLOR);
+  CQT_NET *tyolo_p;
+  int ret;
+  YOLO_PARAM yolo_parameter;
 
 
 
 
 
+  IplImage *src_img_cam = 0;
 
-  dst_img = cvCreateImage(cvSize(620, 424), src_img->depth, src_img->nChannels);
-  cvResize(src_img, dst_img, CV_INTER_LINEAR);
+  RASPIVID_CONFIG * config = (RASPIVID_CONFIG*)malloc(sizeof(RASPIVID_CONFIG));
+  config->width=640;
+  config->height=480;
+  config->bitrate=0;
+  config->framerate=0;
+  config->monochrome=0;
+  RaspiCamCvCapture *video_cap = (RaspiCamCvCapture *) raspiCamCvCreateCameraCapture2(0, config);
+  free(config);
+  if (video_cap == ((void *)0)) {
+    printf("[Error] : Camera Not Found\n");
+    exit(1);
+  }
+# 77 "/home/pi/dl_ans/c_neon/cqt_tyolo.c"
+  while(1) {
+
+
+
+    src_img_cam = raspiCamCvQueryFrame(video_cap);
+
+
+
+
+
+
+
+    system("python3 ../tools/yolo_conv.py ../test.jpg");
+# 106 "/home/pi/dl_ans/c_neon/cqt_tyolo.c"
+    r_color = cvScalar( (0), (0), (255), 0 );
+    w_color = cvScalar( (255), (255), (255), 0 );
+
+
+
+
+    cvNamedWindow ("Tiny-YOLO Result", CV_WINDOW_AUTOSIZE);
+    cvMoveWindow ("Tiny-YOLO Result", 600, 50);
+
+
+
+
+
+
+
+    src_img = src_img_cam;
+
+
+
+
+    dst_img = cvCreateImage(cvSize(620, 424), src_img->depth, src_img->nChannels);
+    cvResize(src_img, dst_img, CV_INTER_LINEAR);
 
     tyolo_p = cqt_init();
     printf("hello cqt\n");
 
 
 
-    ret = load_from_numpy(input_1_input, "../img/person.jpg.npy", 3*416*416, &np);
+    ret = load_from_numpy(input_1_input, "../test.jpg.npy", 3*416*416, &np);
+
 
 
     if(ret != (0)) {
-        printf("error in load_from_numpy %d\n", ret);
-        exit(1);
+      printf("error in load_from_numpy %d\n", ret);
+      exit(1);
     }
 
     ret = cqt_load_weight_from_files(tyolo_p, "weight/");
     if (ret != (0)) {
-        printf("ERROR in cqt_load_weight_from_files %d\n", ret);
+      printf("ERROR in cqt_load_weight_from_files %d\n", ret);
     }
 
     printf("start run\n");
     ret = cqt_run(tyolo_p, input_1_input);
     if(ret != (0)){
-        printf("ERROR in cqt_run %d\n", ret);
+      printf("ERROR in cqt_run %d\n", ret);
     }
 
 
@@ -8261,71 +8337,72 @@ int main(void)
     printf("yolo eval %d\n", ret);
 
     if(ret < 0) {
-        printf("ERROR %d\n", ret);
-        exit(1);
+      printf("ERROR %d\n", ret);
+      exit(1);
     }
 
     for(int i=0;i<ret;i++) {
-        int class = yolo_result[i].class;
-        float score = yolo_result[i].score;
-        BOX b = yolo_result[i].box;
+      int class = yolo_result[i].class;
+      float score = yolo_result[i].score;
+      BOX b = yolo_result[i].box;
 
-        int top, left, bottom, right;
+      int top, left, bottom, right;
 
-        top = (int)floor(b.top + 0.5);
-        if(top < 0) {
-            top = 0;
-        }
-        left = (int)floor(b.left + 0.5);
-        if(left < 0) {
-            left = 0;
-        }
-        bottom = (int)floor(b.bottom + 0.5);
-        if(bottom >= yolo_parameter.height) {
-            bottom = yolo_parameter.height - 1;
-        }
-        right = (int)floor(b.right + 0.5);
-        if(right >= yolo_parameter.width) {
-            right = yolo_parameter.width - 1;
-        }
-        printf("%s %f (%d, %d), (%d, %d)\n",
-               voc_class[class], score, left, top, right, bottom);
-
-
-
-
-  pt1 = cvPoint( left , top );
-  pt2 = cvPoint( right, bottom );
-  cvRectangle (dst_img, pt1, pt2, r_color, 1, 8, 0);
+      top = (int)floor(b.top + 0.5);
+      if(top < 0) {
+        top = 0;
+      }
+      left = (int)floor(b.left + 0.5);
+      if(left < 0) {
+        left = 0;
+      }
+      bottom = (int)floor(b.bottom + 0.5);
+      if(bottom >= yolo_parameter.height) {
+        bottom = yolo_parameter.height - 1;
+      }
+      right = (int)floor(b.right + 0.5);
+      if(right >= yolo_parameter.width) {
+        right = yolo_parameter.width - 1;
+      }
+      printf("%s %f (%d, %d), (%d, %d)\n",
+          voc_class[class], score, left, top, right, bottom);
 
 
 
 
-  pt3 = cvPoint( left , (top+15) );
-  pt4 = cvPoint( (left+70), top );
-  cvRectangle (dst_img, pt3, pt4, r_color, -1, 8, 0);
+      pt1 = cvPoint( left , top );
+      pt2 = cvPoint( right, bottom );
+      cvRectangle (dst_img, pt1, pt2, r_color, 1, 8, 0);
 
 
 
 
-  cvInitFont ( &font, 0, 0.6, 0.6, 0.0, 1, 16 );
-  cvPutText (dst_img, voc_class[class], pt3, &font, w_color);
+      pt3 = cvPoint( left , (top+15) );
+      pt4 = cvPoint( (left+70), top );
+      cvRectangle (dst_img, pt3, pt4, r_color, -1, 8, 0);
+
+
+
+
+      cvInitFont ( &font, 0, 0.6, 0.6, 0.0, 1, 16 );
+      cvPutText (dst_img, voc_class[class], pt3, &font, w_color);
 
     }
 
 
 
 
-  cvShowImage ("Tiny-YOLO Result", dst_img);
-
-
-
-
-  cvWaitKey(0);
-
+    cvShowImage ("Tiny-YOLO Result", dst_img);
+# 242 "/home/pi/dl_ans/c_neon/cqt_tyolo.c"
+    int key=cvWaitKey(20) & 0xFF;
+    if (key==0x1b) {
+      break;
+    }
+  }
+# 262 "/home/pi/dl_ans/c_neon/cqt_tyolo.c"
   cvDestroyWindow ("Tiny-YOLO Result");
   cvReleaseImage (&dst_img);
   cvReleaseImage (&src_img);
 
-    return 0;
+  return 0;
 }
