@@ -28,8 +28,8 @@ int main(void)
   CvScalar r_color, w_color;
   CvPoint  pt1, pt2, pt3, pt4;
   CvFont   font;
-  IplImage *src_img = 0;
   IplImage *dst_img = 0;
+  IplImage *src_img = 0;
   struct 
   {
     int  x;
@@ -42,9 +42,11 @@ int main(void)
   /*****  END : Declear Variables   ****
    *************************************/
 
+  int count = 0;
+
   /************************************
    **** Initialize Camera Setting *****/
-  IplImage *src_img_cam = 0;
+  //IplImage *src_img = 0;
 
   RASPIVID_CONFIG * config = (RASPIVID_CONFIG*)malloc(sizeof(RASPIVID_CONFIG));
   config->width=640;
@@ -78,142 +80,153 @@ int main(void)
     //-----------------------------
     // Capture image data from camera
     //-----------------------------
-    src_img_cam = raspiCamCvQueryFrame(video_cap);
-    //cvSaveImage("../test.jpg", &src_img_cam, 0);
+    src_img = raspiCamCvQueryFrame(video_cap);
 
-    // confirming all values print correctly
-    //printf("%c, ", src_img_cam->imageData[5*width + 5]);
+    if (count > 200){
 
-    // Save as .jpg
-    //system("bash ../check.sh");
-    system("python3 ../tools/yolo_conv.py ../test.jpg");
+      cvSaveImage("../test.jpg", src_img, 0);
+      //cvSaveImage("../test.jpg", &src_img);
 
-    //-----------------------------
-    // Show image (2)
-    //-----------------------------
-    //cvShowImage ("Camera Input", src_img_cam);
+      // confirming all values print correctly
+      //printf("%c, ", src_img->imageData[5*width + 5]);
 
+      // Save as .jpg
+      //system("bash ../check.sh");
+      system("python3 ../tools/yolo_conv.py ../test.jpg");
 
 
-    /******************************/
-    /******************************/
-    /******************************/
-    /******************************/
-    /******************************/
-    //-----------------------------
-    // Color Setting 
-    //-----------------------------
-    r_color = CV_RGB( 255,   0,   0 );
-    w_color = CV_RGB( 255, 255, 255 );
 
+      /******************************/
+      /******************************/
+      /******************************/
+      /******************************/
+      /******************************/
+      //-----------------------------
+      // Color Setting 
+      //-----------------------------
+      r_color = CV_RGB( 255,   0,   0 );
+      w_color = CV_RGB( 255, 255, 255 );
+
+      //-----------------------------
+      // Load image data
+      //-----------------------------
+      //src_img = cvLoadImage("../img/person.jpg", CV_LOAD_IMAGE_COLOR);
+      //src_img = cvLoadImage("../img/000001.jpg", CV_LOAD_IMAGE_COLOR);
+      //src_img = cvLoadImage("../img/000058.jpg", CV_LOAD_IMAGE_COLOR);
+      //src_img = src_img;
+
+      //-----------------------------
+      // Resize (620x424)
+      //-----------------------------
+      dst_img = cvCreateImage(cvSize(620, 424), src_img->depth, src_img->nChannels);
+      cvResize(src_img, dst_img, CV_INTER_LINEAR);
+
+      tyolo_p = cqt_init();
+      printf("hello cqt\n");
+
+      //input layer の出力に画像データを格納する。
+
+      ret = load_from_numpy(input_1_input, "../test.jpg.npy", 3*IMG_SIZE*IMG_SIZE, &np);
+      //ret = load_from_numpy(input_1_input, "../img/person.jpg.npy", 3*IMG_SIZE*IMG_SIZE, &np);
+      //ret = load_from_numpy(input_1_input, "../img/000001.jpg.npy", 3*IMG_SIZE*IMG_SIZE, &np);
+      //ret = load_from_numpy(input_1_input, "../img/000058.jpg.npy", 3*IMG_SIZE*IMG_SIZE, &np);
+      if(ret != CQT_RET_OK) {
+        printf("error in load_from_numpy %d\n", ret);
+        exit(1);
+      }
+
+      ret = cqt_load_weight_from_files(tyolo_p, "weight/");
+      if (ret != CQT_RET_OK) {
+        printf("ERROR in cqt_load_weight_from_files %d\n", ret);
+      }
+
+      printf("start run\n");
+      ret = cqt_run(tyolo_p, input_1_input);
+      if(ret != CQT_RET_OK){
+        printf("ERROR in cqt_run %d\n", ret);
+      }
+
+
+      // ここから領域の計算
+      yolo_parameter.width = 620;
+      yolo_parameter.height = 424;
+      yolo_parameter.score_threshold = 0.3;
+      yolo_parameter.iou_threshold = 0.5;
+      yolo_parameter.classes = 20;
+
+      ret = yolo_eval(conv2d_9_output, &yolo_parameter);
+      printf("yolo eval %d\n", ret);
+
+      if(ret < 0) {
+        printf("ERROR %d\n", ret);
+        exit(1);
+      }
+
+      for(int i=0;i<ret;i++) {
+        int class = yolo_result[i].class;
+        float score = yolo_result[i].score;
+        BOX b = yolo_result[i].box;
+
+        int top, left, bottom, right;
+
+        top = (int)floor(b.top + 0.5);
+        if(top < 0) {
+          top = 0;
+        }
+        left = (int)floor(b.left + 0.5);
+        if(left < 0) {
+          left = 0;
+        }
+        bottom = (int)floor(b.bottom + 0.5);
+        if(bottom >= yolo_parameter.height) {
+          bottom = yolo_parameter.height - 1;
+        }
+        right = (int)floor(b.right + 0.5);
+        if(right >= yolo_parameter.width) {
+          right = yolo_parameter.width - 1;
+        }
+        printf("%s %f (%d, %d), (%d, %d)\n",
+            voc_class[class], score, left, top, right, bottom);
+
+        //-----------------------------
+        // Frame for Detect area
+        //-----------------------------
+        pt1 = cvPoint( left , top    );
+        pt2 = cvPoint( right, bottom );
+        cvRectangle (dst_img, pt1, pt2, r_color, 1, 8, 0);
+
+        //-----------------------------
+        // Frame for Text area
+        //-----------------------------
+        pt3 = cvPoint(  left    , (top+15) );
+        pt4 = cvPoint( (left+70),  top     );
+        cvRectangle (dst_img, pt3, pt4, r_color, -1, 8, 0);
+
+        //-----------------------------
+        // Text info. 
+        //-----------------------------
+        cvInitFont ( &font, CV_FONT_HERSHEY_SIMPLEX, 0.6, 0.6, 0.0, 1, CV_AA );
+        cvPutText (dst_img, voc_class[class], pt3, &font, w_color); 
+
+      }
+    } else {
+      count++;
+      printf("%d\n", count);
+
+      //-----------------------------
+      // Show image (2)
+      //-----------------------------
+      cvShowImage ("Tiny-YOLO Result", src_img);
+      cvWaitKey(20);
+      continue;
+    }
+
+    //cvDestroyWindow ("Tiny-YOLO Result");
     //-----------------------------
     // Create New Window
     //-----------------------------
     cvNamedWindow ("Tiny-YOLO Result", CV_WINDOW_AUTOSIZE);
-    cvMoveWindow ("Tiny-YOLO Result", 600, 50);
-
-    //-----------------------------
-    // Load image data
-    //-----------------------------
-    //src_img = cvLoadImage("../img/person.jpg", CV_LOAD_IMAGE_COLOR);
-    //src_img = cvLoadImage("../img/000001.jpg", CV_LOAD_IMAGE_COLOR);
-    //src_img = cvLoadImage("../img/000058.jpg", CV_LOAD_IMAGE_COLOR);
-    src_img = src_img_cam;
-
-    //-----------------------------
-    // Resize (620x424)
-    //-----------------------------
-    dst_img = cvCreateImage(cvSize(620, 424), src_img->depth, src_img->nChannels);
-    cvResize(src_img, dst_img, CV_INTER_LINEAR);
-
-    tyolo_p = cqt_init();
-    printf("hello cqt\n");
-
-    //input layer の出力に画像データを格納する。
-
-    ret = load_from_numpy(input_1_input, "../test.jpg.npy", 3*IMG_SIZE*IMG_SIZE, &np);
-    //ret = load_from_numpy(input_1_input, "../img/person.jpg.npy", 3*IMG_SIZE*IMG_SIZE, &np);
-    //ret = load_from_numpy(input_1_input, "../img/000001.jpg.npy", 3*IMG_SIZE*IMG_SIZE, &np);
-    //ret = load_from_numpy(input_1_input, "../img/000058.jpg.npy", 3*IMG_SIZE*IMG_SIZE, &np);
-    if(ret != CQT_RET_OK) {
-      printf("error in load_from_numpy %d\n", ret);
-      exit(1);
-    }
-
-    ret = cqt_load_weight_from_files(tyolo_p, "weight/");
-    if (ret != CQT_RET_OK) {
-      printf("ERROR in cqt_load_weight_from_files %d\n", ret);
-    }
-
-    printf("start run\n");
-    ret = cqt_run(tyolo_p, input_1_input);
-    if(ret != CQT_RET_OK){
-      printf("ERROR in cqt_run %d\n", ret);
-    }
-
-
-    // ここから領域の計算
-    yolo_parameter.width = 620;
-    yolo_parameter.height = 424;
-    yolo_parameter.score_threshold = 0.3;
-    yolo_parameter.iou_threshold = 0.5;
-    yolo_parameter.classes = 20;
-
-    ret = yolo_eval(conv2d_9_output, &yolo_parameter);
-    printf("yolo eval %d\n", ret);
-
-    if(ret < 0) {
-      printf("ERROR %d\n", ret);
-      exit(1);
-    }
-
-    for(int i=0;i<ret;i++) {
-      int class = yolo_result[i].class;
-      float score = yolo_result[i].score;
-      BOX b = yolo_result[i].box;
-
-      int top, left, bottom, right;
-
-      top = (int)floor(b.top + 0.5);
-      if(top < 0) {
-        top = 0;
-      }
-      left = (int)floor(b.left + 0.5);
-      if(left < 0) {
-        left = 0;
-      }
-      bottom = (int)floor(b.bottom + 0.5);
-      if(bottom >= yolo_parameter.height) {
-        bottom = yolo_parameter.height - 1;
-      }
-      right = (int)floor(b.right + 0.5);
-      if(right >= yolo_parameter.width) {
-        right = yolo_parameter.width - 1;
-      }
-      printf("%s %f (%d, %d), (%d, %d)\n",
-          voc_class[class], score, left, top, right, bottom);
-
-      //-----------------------------
-      // Frame for Detect area
-      //-----------------------------
-      pt1 = cvPoint( left , top    );
-      pt2 = cvPoint( right, bottom );
-      cvRectangle (dst_img, pt1, pt2, r_color, 1, 8, 0);
-
-      //-----------------------------
-      // Frame for Text area
-      //-----------------------------
-      pt3 = cvPoint(  left    , (top+15) );
-      pt4 = cvPoint( (left+70),  top     );
-      cvRectangle (dst_img, pt3, pt4, r_color, -1, 8, 0);
-
-      //-----------------------------
-      // Text info. 
-      //-----------------------------
-      cvInitFont ( &font, CV_FONT_HERSHEY_SIMPLEX, 0.6, 0.6, 0.0, 1, CV_AA );
-      cvPutText (dst_img, voc_class[class], pt3, &font, w_color); 
-
-    }
+    cvMoveWindow ("Tiny-YOLO Result", 0, 0);
 
     //-----------------------------
     // Show image data 
@@ -223,7 +236,7 @@ int main(void)
     //-----------------------------
     // Wait Key input
     //-----------------------------
-    //cvWaitKey(0);
+    cvWaitKey(1000);
 
     //cvDestroyWindow ("Tiny-YOLO Result");
     //cvReleaseImage (&dst_img);
@@ -249,7 +262,7 @@ int main(void)
   // Release Window (3)
   //-----------------------------
   //cvDestroyWindow ("Camera Input");
-  //cvReleaseImage (&src_img_cam);
+  //cvReleaseImage (&src_img);
   //raspiCamCvReleaseCapture(&video_cap);
   /*********************************/
   /*********************************/
@@ -259,9 +272,9 @@ int main(void)
   /*********************************/
   /*********************************/
 
-  cvDestroyWindow ("Tiny-YOLO Result");
-  cvReleaseImage (&dst_img);
-  cvReleaseImage (&src_img);
+  //cvDestroyWindow ("Tiny-YOLO Result");
+  //cvReleaseImage (&dst_img);
+  //cvReleaseImage (&src_img);
 
   return 0;
 }
