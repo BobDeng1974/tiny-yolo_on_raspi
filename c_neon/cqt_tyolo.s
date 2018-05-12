@@ -50,7 +50,7 @@ main:
 	bl	raspiCamCvQueryFrame
 	ldr	r3, [sp, #32]
 	mov	r4, r0
-	cmp	r3, #200
+	cmp	r3, #1
 	ble	.L3
 	movw	r0, #:lower16:.LC1
 	mov	r1, r4
@@ -286,6 +286,27 @@ main:
 	@ sp needed
 	fldmfdd	sp!, {d8-d11}
 	ldmfd	sp!, {r4, r5, r6, r7, r8, r9, r10, fp, pc}
+.L26:
+	movw	r0, #:lower16:.LC9
+	movt	r0, #:upper16:.LC9
+	bl	printf
+	b	.L6
+.L25:
+	movw	r0, #:lower16:.LC7
+	movt	r0, #:upper16:.LC7
+	bl	printf
+	b	.L5
+.L28:
+	.align	3
+.L27:
+	.word	0
+	.word	0
+	.word	0
+	.word	1081073664
+	.word	858993459
+	.word	1071854387
+	.word	1050253722
+	.word	yolo_result+20
 .L3:
 	add	r3, r3, #1
 	movw	r0, #:lower16:.LC13
@@ -300,27 +321,6 @@ main:
 	mov	r0, #20
 	bl	cvWaitKey
 	b	.L2
-.L28:
-	.align	3
-.L27:
-	.word	0
-	.word	0
-	.word	0
-	.word	1081073664
-	.word	858993459
-	.word	1071854387
-	.word	1050253722
-	.word	yolo_result+20
-.L26:
-	movw	r0, #:lower16:.LC9
-	movt	r0, #:upper16:.LC9
-	bl	printf
-	b	.L6
-.L25:
-	movw	r0, #:lower16:.LC7
-	movt	r0, #:upper16:.LC7
-	bl	printf
-	b	.L5
 .L23:
 	movw	r0, #:lower16:.LC0
 	movt	r0, #:upper16:.LC0

@@ -8271,7 +8271,7 @@ int main(void)
 
     src_img = raspiCamCvQueryFrame(video_cap);
 
-    if (count > 200){
+    if (count > 1){
 
       cvSaveImage("../test.jpg", src_img, 0);
 
